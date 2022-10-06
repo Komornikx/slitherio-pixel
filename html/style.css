@@ -24,7 +24,8 @@ body {
 	padding: 1rem;
 	width: 100px;
 	background-color: rgba(5, 12, 6, 0.233);
-	left: 50%;
+	left: calc(50% - 150px);
+	width: 300px;
 	text-align: center;
 	position: fixed;
 	display: none;
