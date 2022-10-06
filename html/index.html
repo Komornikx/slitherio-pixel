@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="en">
+	<head>
+		<meta charset="UTF-8" />
+		<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+		<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+		<link rel="stylesheet" href="style.css" />
+		<title>Slitherio xdddd</title>
+	</head>
+	<body>
+		<div id="loading">Ładowanie...</div>
+		<div id="UI">
+			<div id="leaderboards">1. gowno 2. gowno 3. stah</div>
+			<div id="player-data">
+				<div id="player-name">Nick tu</div>
+				<div id="points">
+					Points:
+					<div id="points-amount">0</div>
+				</div>
+			</div>
+		</div>
+		<canvas id="canvas"></canvas>
+	</body>
+</html>
+
+<script src="https://cdn.jsdelivr.net/npm/socket.io-client@4.5.2/dist/socket.io.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/axios/1.0.0/axios.min.js"></script>
+<script src="./game.js"></script>
+<script>
+	const game = new Game();
+	game.start();
+</script>
