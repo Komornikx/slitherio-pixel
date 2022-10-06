@@ -70,15 +70,21 @@ class Game {
 		const playerData = document.querySelector('#player-data');
 		const points = document.querySelector('#points-amount');
 		const name = document.querySelector('#player-name');
-		const leaderBoards = document.querySelector('#leaderboards');
+		const leaderBoard = document.querySelector('#leaderboard');
 		setInterval(() => {
-			//* update leaderBoards
-			for (const player of this.players.sort((a, b) => a.points > b.points)) {
-				const el = document.createElement('div');
-				el.innerHTML = `1. ${player.name || 'brak'}: ${player.points}`;
-
-				leaderBoards.appendChild(el);
+			//* update leaderBoard
+			let htmlString = ``;
+			for (const [index, player] of this.players
+				.sort((a, b) => a.points > b.points)
+				.entries()) {
+				const elements = leaderBoard.getElementsByTagName('*');
+				if (elements.length < 10) {
+					htmlString += `<div>${index}. ${player.name || 'Brak'}: ${
+						player.points
+					}</div>`;
+				}
 			}
+			leaderBoard.innerHTML = htmlString;
 
 			if (this.player) {
 				points.innerHTML = this.player.points || 0;
@@ -87,7 +93,7 @@ class Game {
 		}, 10);
 
 		loading.style.display = 'none';
-		leaderBoards.style.display = 'block';
+		leaderBoard.style.display = 'block';
 		playerData.style.display = 'block';
 		canvas.style.display = 'block';
 	}
