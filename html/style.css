@@ -14,25 +14,41 @@ body {
 }
 
 #canvas {
-	border: greenyellow 3px solid;
 	display: none;
 }
 
-#UI {
-	top: 1%;
+#player-data {
+	color: gray;
+	top: 0;
+	margin: 1rem;
+	padding: 1rem;
+	width: 100px;
+	background-color: rgba(5, 12, 6, 0.233);
 	left: 50%;
 	text-align: center;
 	position: fixed;
-	background-color: rgb(84, 97, 14);
 	display: none;
 }
 
-#UI > #points {
+#leaderboards {
+	color: gray;
+	top: 0;
+	margin: 1rem;
+	padding: 1rem;
+	width: 100px;
+	max-height: 200px;
+	overflow: hidden;
+	background-color: rgba(5, 12, 6, 0.233);
+	position: fixed;
+	display: none;
+}
+
+#player-data > #points {
 	display: flex;
 	justify-content: center;
 }
 
-#UI > #player-name {
+#player-data > #player-name {
 	font-size: 30px;
 }
 

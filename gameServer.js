@@ -92,7 +92,7 @@ class GameServer {
 						for (const tailPart of player2.tail) {
 							if (
 								(player.x >= tailPart.x ||
-									player.x + player.size >= player2.x) &&
+									player.x + player.size >= tailPart.x) &&
 								(player.y >= tailPart.y ||
 									player.y + player.size >= tailPart.y) &&
 								player.x <= tailPart.x + player2.size &&

@@ -4,7 +4,7 @@ class Game {
 		this.ctx = this.canvas.getContext('2d');
 		this.socket = io('http://192.168.2.20:3000');
 
-		this.fps = 60;
+		this.fps = 300;
 		this.mouseX = 0;
 		this.mouseY = 0;
 
@@ -15,6 +15,13 @@ class Game {
 
 		this.canvas.width = 1920;
 		this.canvas.height = 1080;
+	}
+
+	async start() {
+		await this.#loadData();
+		this.#joinPlayer();
+		this.#updateUI();
+		this.#render();
 
 		this.socket.on('update', (data) => {
 			this.running = true;
@@ -22,13 +29,6 @@ class Game {
 			this.points = data.points;
 			this.player = data.players.find((el) => el.id == this.socket.id);
 		});
-	}
-
-	async start() {
-		await this.#loadData();
-		this.#joinPlayer();
-		this.#updateDOM();
-		this.#render();
 
 		this.canvas.addEventListener('mousemove', (e) => {
 			const rect = this.canvas.getBoundingClientRect();
@@ -65,19 +65,30 @@ class Game {
 		}, 1000 / this.fps);
 	}
 
-	#updateDOM() {
+	#updateUI() {
 		const loading = document.querySelector('#loading');
-		const UI = document.querySelector('#UI');
+		const playerData = document.querySelector('#player-data');
 		const points = document.querySelector('#points-amount');
 		const name = document.querySelector('#player-name');
+		const leaderBoards = document.querySelector('#leaderboards');
 		setInterval(() => {
+			//* update leaderBoards
+			for (const player of this.players.sort((a, b) => a.points > b.points)) {
+				const el = document.createElement('div');
+				el.innerHTML = `1. ${player.name || 'brak'}: ${player.points}`;
+
+				leaderBoards.appendChild(el);
+			}
+
 			if (this.player) {
 				points.innerHTML = this.player.points || 0;
 				name.innerHTML = this.player.name || 'Brak';
 			}
 		}, 10);
+
 		loading.style.display = 'none';
-		UI.style.display = 'block';
+		leaderBoards.style.display = 'block';
+		playerData.style.display = 'block';
 		canvas.style.display = 'block';
 	}
 
