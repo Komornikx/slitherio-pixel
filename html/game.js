@@ -17,9 +17,9 @@ class Game {
 		this.canvas.height = 1080;
 	}
 
-	async start() {
+	async start(playerName) {
 		await this.#loadData();
-		this.#joinPlayer();
+		this.#joinPlayer(playerName);
 		this.#updateUI();
 		this.#render();
 
@@ -42,8 +42,8 @@ class Game {
 		});
 	}
 
-	#joinPlayer() {
-		this.socket.emit('player-join');
+	#joinPlayer(name) {
+		this.socket.emit('player-join', { name });
 	}
 
 	#render() {
@@ -67,19 +67,23 @@ class Game {
 
 	#updateUI() {
 		const loading = document.querySelector('#loading');
-		const playerData = document.querySelector('#player-data');
+		const game = document.querySelector('#game');
+		const menu = document.querySelector('#menu');
 		const points = document.querySelector('#points-amount');
 		const name = document.querySelector('#player-name');
 		const leaderBoard = document.querySelector('#leaderboard');
+
+		const playerName = document.createElement('div');
+		game.appendChild(playerName);
 		setInterval(() => {
 			//* update leaderBoard
 			let htmlString = ``;
 			for (const [index, player] of this.players
-				.sort((a, b) => a.points > b.points)
+				.sort((a, b) => b.points - a.points)
 				.entries()) {
 				const elements = leaderBoard.getElementsByTagName('*');
-				if (elements.length < 10) {
-					htmlString += `<div>${index}. ${player.name || 'Brak'}: ${
+				if (elements.length < 9) {
+					htmlString += `<div><b>${index + 1}.</b> ${player.name || 'Brak'}: ${
 						player.points
 					}</div>`;
 				}
@@ -89,12 +93,18 @@ class Game {
 			if (this.player) {
 				points.innerHTML = this.player.points || 0;
 				name.innerHTML = this.player.name || 'Brak';
+
+				playerName.style.position = 'absolute';
+				playerName.style.left = `${this.player.x}px`;
+				playerName.style.top = `${this.player.y}px`;
+				playerName.innerHTML = this.player.name;
 			}
 		}, 10);
 
 		loading.style.display = 'none';
+		menu.style.display = 'none';
 		leaderBoard.style.display = 'block';
-		playerData.style.display = 'block';
+		game.style.display = 'block';
 		canvas.style.display = 'block';
 	}
 

@@ -13,9 +13,9 @@ class GameServer {
 		this.points = [];
 
 		this.io.on('connection', (socket) => {
-			socket.on('player-join', () => {
+			socket.on('player-join', (data) => {
 				this.players.push(
-					new Player(socket.id, 40, 40, this.#getRandomColor())
+					new Player(socket.id, 40, 40, data.name, this.#getRandomColor())
 				);
 
 				this.#emitUpdate();

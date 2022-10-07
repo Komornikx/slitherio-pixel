@@ -9,15 +9,26 @@
 	</head>
 	<body>
 		<div id="loading">Ładowanie...</div>
-		<div id="leaderboard"></div>
-		<div id="player-data">
-			<div id="player-name">Nick tu</div>
-			<div id="points">
-				Points:
-				<div id="points-amount">0</div>
+		<div id="menu">
+			<div>
+				<div>Nick:</div>
+				<input id="name-input" type="text" />
 			</div>
+			<button onclick="game.start(document.querySelector('#name-input').value)">
+				Play
+			</button>
 		</div>
-		<canvas id="canvas"></canvas>
+		<div id="game">
+			<div id="leaderboard"></div>
+			<div id="player-data">
+				<div id="player-name">Nick tu</div>
+				<div id="points">
+					Points:
+					<div id="points-amount">0</div>
+				</div>
+			</div>
+			<canvas id="canvas"></canvas>
+		</div>
 	</body>
 </html>
 
@@ -26,5 +37,5 @@
 <script src="./game.js"></script>
 <script>
 	const game = new Game();
-	game.start();
+	// game.start();
 </script>

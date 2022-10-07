@@ -1,10 +1,11 @@
 class Player {
-	constructor(id, x, y, color) {
+	constructor(id, x, y, name, color) {
 		this.id = id;
-
 		this.x = x;
 		this.y = y;
+		this.name = name;
 		this.color = color;
+
 		this.tail = [];
 		this.points = 0;
 		this.size = 10;
