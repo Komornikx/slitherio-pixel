@@ -2,6 +2,7 @@ html {
 	width: 100%;
 	height: 100%;
 	font-family: Arial, Helvetica, sans-serif;
+	overflow: hidden;
 }
 
 body {
@@ -16,12 +17,17 @@ body {
 	align-items: center;
 }
 
-#canvas {
-	display: none;
-}
 
 #game {
 	display: none;
+	width: 100%;
+	height: 100%;
+}
+
+#canvas {
+	overflow: hidden;
+	position: absolute;
+	border: 1px solid green;
 }
 
 #loading {
