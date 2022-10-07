@@ -6,8 +6,6 @@ class Game {
 		this.socket = io('');
 
 		this.fps = 300;
-		this.mouseX = 0;
-		this.mouseY = 0;
 
 		this.players = [];
 		this.points = [];
@@ -21,7 +19,7 @@ class Game {
 	async start(playerName) {
 		await this.#loadData();
 		this.#joinPlayer(playerName);
-		this.#update();
+		this.#render();
 
 		this.socket.on('update', (data) => {
 			this.running = true;
@@ -44,12 +42,12 @@ class Game {
 
 		this.canvas.addEventListener('mousemove', (e) => {
 			const rect = this.canvas.getBoundingClientRect();
-			this.mouseX = e.clientX - rect.left;
-			this.mouseY = e.clientY - rect.top;
+			this.player.mouseX = e.clientX - rect.left;
+			this.player.mouseY = e.clientY - rect.top;
 
 			this.socket.emit('change-dir', {
-				mouseX: this.mouseX,
-				mouseY: this.mouseY,
+				mouseX: this.player.mouseX,
+				mouseY: this.player.mouseY,
 			});
 		});
 	}
@@ -58,7 +56,7 @@ class Game {
 		this.socket.emit('player-join', { name });
 	}
 
-	#update() {
+	#render() {
 		requestAnimationFrame(() => this.#renderFrame());
 		requestAnimationFrame(() => this.#updateUI());
 		requestAnimationFrame(() => this.#cameraFollow());
@@ -103,64 +101,34 @@ class Game {
 
 		const playerName = document.createElement('div');
 		game.appendChild(playerName);
-		// window.requestAnimationFrame(function renameLater() {
-		// 	//* update leaderBoard
-		// 	let htmlString = ``;
-		// 	for (const [index, player] of this.players
-		// 		.sort((a, b) => b.points - a.points)
-		// 		.entries()) {
-		// 		const elements = leaderBoard.getElementsByTagName('*');
-		// 		if (elements.length < 9) {
-		// 			htmlString += `<div><b>${index + 1}.</b> ${player.name || 'Brak'}: ${
-		// 				player.points
-		// 			}</div>`;
-		// 		}
-		// 	}
-		// 	leaderBoard.innerHTML = htmlString;
+		//* update leaderBoard
+		let htmlString = ``;
+		for (const [index, player] of this.players
+			.sort((a, b) => b.points - a.points)
+			.entries()) {
+			const elements = leaderBoard.getElementsByTagName('*');
+			if (elements.length < 9) {
+				htmlString += `<div><b>${index + 1}.</b> ${player.name || 'Brak'}: ${
+					player.points
+				}</div>`;
+			}
+		}
+		leaderBoard.innerHTML = htmlString;
 
-		// 	if (this.player) {
-		// 		points.innerHTML = this.player.points || 0;
-		// 		name.innerHTML = this.player.name || 'Brak';
+		if (this.player) {
+			points.innerHTML = this.player.points || 0;
+			name.innerHTML = this.player.name || 'Brak';
 
-		// 		playerName.style.position = 'absolute';
-		// 		playerName.style.left = `${this.player.x}px`;
-		// 		playerName.style.top = `${this.player.y}px`;
-		// 		playerName.innerHTML = this.player.name;
-		// 	}
-		// 	window.requestAnimationFrame(renameLater());
-		// });
-		// setInterval(() => {
-		//   //* update leaderBoard
-		//   let htmlString = ``;
-		//   for (const [index, player] of this.players
-		//     .sort((a, b) => b.points - a.points)
-		//     .entries()) {
-		//     const elements = leaderBoard.getElementsByTagName('*');
-		//     if (elements.length < 9) {
-		//       htmlString += `<div><b>${index + 1}.</b> ${player.name || 'Brak'}: ${
-		//         player.points
-		//       }</div>`;
-		//     }
-		//   }
-		//   leaderBoard.innerHTML = htmlString;
-
-		//   if (this.player) {
-		//     points.innerHTML = this.player.points || 0;
-		//     name.innerHTML = this.player.name || 'Brak';
-
-		//     playerName.style.position = 'absolute';
-		//     playerName.style.left = `${this.player.x}px`;
-		//     playerName.style.top = `${this.player.y}px`;
-		//     playerName.innerHTML = this.player.name;
-		//   }
-		// }, 10);
+			playerName.style.position = 'absolute';
+			playerName.style.left = `${this.player.x}px`;
+			playerName.style.top = `${this.player.y}px`;
+			playerName.innerHTML = this.player.name;
+		}
 
 		loading.style.display = 'none';
 		menu.style.display = 'none';
 		leaderBoard.style.display = 'block';
 		game.style.display = 'block';
-
-		requestAnimationFrame(() => this.#updateUI());
 	}
 
 	async #loadData() {
