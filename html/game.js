@@ -99,8 +99,6 @@ class Game {
 		const name = document.querySelector('#player-name');
 		const leaderBoard = document.querySelector('#leaderboard');
 
-		const playerName = document.createElement('div');
-		game.appendChild(playerName);
 		//* update leaderBoard
 		let htmlString = ``;
 		for (const [index, player] of this.players
@@ -119,9 +117,12 @@ class Game {
 			points.innerHTML = this.player.points || 0;
 			name.innerHTML = this.player.name || 'Brak';
 
-			playerName.style.position = 'absolute';
-			playerName.style.left = `${this.player.x}px`;
-			playerName.style.top = `${this.player.y}px`;
+			const windowX = window.innerWidth;
+			const windowY = window.innerHeight;
+
+			const playerName = document.querySelector('#player-name-floating');
+			playerName.style.left = `${-(this.player.x - windowX / 2)}px`;
+			playerName.style.top = `${-(this.player.y - windowY / 2)}px`;
 			playerName.innerHTML = this.player.name;
 		}
 
@@ -129,6 +130,8 @@ class Game {
 		menu.style.display = 'none';
 		leaderBoard.style.display = 'block';
 		game.style.display = 'block';
+
+		requestAnimationFrame(() => this.#updateUI());
 	}
 
 	async #loadData() {

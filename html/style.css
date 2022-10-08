@@ -17,7 +17,6 @@ body {
 	align-items: center;
 }
 
-
 #game {
 	display: none;
 	width: 100%;
@@ -28,6 +27,8 @@ body {
 	overflow: hidden;
 	position: absolute;
 	border: 1px solid green;
+	background-color: black;
+	z-index: 1;
 }
 
 #loading {
@@ -47,28 +48,28 @@ body {
 }
 
 #player-data {
-	color: gray;
+	color: white;
 	top: 0;
 	margin: 1rem;
 	padding: 1rem;
-	width: 100px;
-	background-color: rgba(5, 12, 6, 0.233);
 	left: calc(50% - 150px);
 	width: 300px;
 	text-align: center;
+	overflow: hidden;
 	position: fixed;
+	z-index: 10;
 }
 
 #leaderboard {
-	color: gray;
+	color: white;
 	top: 0;
 	margin: 1rem;
 	padding: 1rem;
 	width: 100px;
 	max-height: 200px;
 	overflow: hidden;
-	background-color: rgba(5, 12, 6, 0.233);
 	position: fixed;
+	z-index: 10;
 }
 
 #player-data > #points {
@@ -78,4 +79,8 @@ body {
 
 #player-data > #player-name {
 	font-size: 30px;
+}
+
+#player-name-floating {
+	position: absolute;
 }
