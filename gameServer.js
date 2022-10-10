@@ -2,192 +2,201 @@ const Player = require('./Player');
 const Point = require('./Point');
 
 class GameServer {
-  constructor(io) {
-    this.io = io;
-    this.mapWidth = 4000;
-    this.mapHeight = 4000;
+	constructor(io, config) {
+		this.io = io;
+		this.config = config;
 
-    this.running = false;
+		this.running = false;
 
-    this.players = [];
-    this.points = [];
+		this.players = [];
+		this.points = [];
 
-    this.io.on('connection', (socket) => {
-      socket.on('player-join', (data) => {
-        this.players.push(
-          new Player(
-            socket.id,
-            this.mapWidth / 2,
-            this.mapHeight / 2,
-            data.name,
-            this.#getRandomColor()
-          )
-        );
+		this.io.on('connection', (socket) => {
+			socket.on('player-join', (data) => {
+				const position = this.#getRandomPosition();
 
-        this.#emitUpdate();
-      });
+				this.players.push(
+					new Player(
+						socket.id,
+						position.x,
+						position.y,
+						data.name,
+						this.#getRandomColor()
+					)
+				);
 
-      socket.on('player-speed', (data) => {
-        for (const player of this.players) {
-          if (player.id == socket.id) {
-            player.speed = data;
-          }
-        }
-      });
+				this.#emitUpdate();
+			});
 
-      socket.on('change-dir', (data) => {
-        for (const player of this.players) {
-          if (player.id == socket.id) {
-            player.mouseX = data.mouseX;
-            player.mouseY = data.mouseY;
-          }
-        }
-      });
+			socket.on('player-speed', (data) => {
+				for (const player of this.players) {
+					if (player.id == socket.id) {
+						player.speed = data;
+					}
+				}
+			});
 
-      socket.on('disconnect', () => {
-        this.players = this.players.filter((el) => el.id != socket.id);
-        this.#emitUpdate();
-      });
-    });
-  }
+			socket.on('change-dir', (data) => {
+				for (const player of this.players) {
+					if (player.id == socket.id) {
+						player.mouseX = data.mouseX;
+						player.mouseY = data.mouseY;
+					}
+				}
+			});
 
-  start() {
-    this.#mainLoop();
-    this.#generatePoints(300);
+			socket.on('disconnect', () => {
+				this.players = this.players.filter((el) => el.id != socket.id);
+				this.#emitUpdate();
+			});
+		});
+	}
 
-    this.running = true;
-  }
+	start() {
+		this.#mainLoop();
+		this.#generatePoints(this.config.pointsInitAmount);
 
-  #mainLoop() {
-    setInterval(() => {
-      for (const player of this.players) {
-        //* move loop
-        player.diffX = player.mouseX - player.x;
-        player.diffY = player.mouseY - player.y;
+		this.running = true;
+	}
 
-        let pointDist = Math.sqrt(
-          player.diffX * player.diffX + player.diffY * player.diffY
-        );
+	#mainLoop() {
+		setInterval(() => {
+			for (const player of this.players) {
+				//* move
+				player.diffX = player.mouseX - player.x;
+				player.diffY = player.mouseY - player.y;
 
-        if (pointDist > 5) {
-          player.diffX *= 1 / pointDist;
-          player.diffY *= 1 / pointDist;
-        }
+				let pointDist = Math.sqrt(
+					player.diffX * player.diffX + player.diffY * player.diffY
+				);
 
-        player.x += player.speed ? player.diffX * 2 : player.diffX;
-        player.y += player.speed ? player.diffY * 2 : player.diffY;
+				player.diffX *= 1 / pointDist;
+				player.diffY *= 1 / pointDist;
 
-        if (player.diffX + player.diffY != 0) {
-          player.tail.push({
-            x: player.x,
-            y: player.y,
-            color: this.#getRandomColor(),
-          });
-        }
+				const moveX = player.speed
+					? player.diffX * this.config.boostSpeed
+					: player.diffX * this.config.normalSpeed;
+				const moveY = player.speed
+					? player.diffY * this.config.boostSpeed
+					: player.diffY * this.config.normalSpeed;
 
-        if (player.tail.length > player.points * 10) {
-          player.tail.shift();
-        }
+				player.x += moveX;
+				player.y += moveY;
 
-        //* pick points detect
-        for (const point of this.points) {
-          if (
-            (player.x >= point.x || player.x + player.size >= point.x) &&
-            (player.y >= point.y || player.y + player.size >= point.y) &&
-            player.x <= point.x + point.size &&
-            player.y <= point.y + point.size
-          ) {
-            this.#pickPoint(player, point);
-          }
-        }
+				player.mouseX += moveX;
+				player.mouseY += moveY;
 
-        //* touch other player tail detect
-        for (const player2 of this.players) {
-          if (player.id != player2.id) {
-            for (const tailPart of player2.tail) {
-              if (
-                (player.x >= tailPart.x ||
-                  player.x + player.size >= tailPart.x) &&
-                (player.y >= tailPart.y ||
-                  player.y + player.size >= tailPart.y) &&
-                player.x <= tailPart.x + player2.size &&
-                player.y <= tailPart.y + player2.size
-              ) {
-                this.#killPlayer(player);
-              }
-            }
-          }
-        }
+				if (player.diffX + player.diffY != 0) {
+					player.tail.push({
+						x: player.x,
+						y: player.y,
+						color: this.#getRandomColor(),
+					});
+				}
 
-        player.size = this.#calculatePlayerSize(player);
-      }
-      this.#emitUpdate();
-    }, 10);
-  }
+				if (player.tail.length > player.points * 10) {
+					player.tail.shift();
+				}
 
-  #emitUpdate() {
-    this.io.emit('update', {
-      players: this.players,
-      points: this.points,
-    });
-  }
+				//* pick points detect
+				for (const point of this.points) {
+					if (
+						(player.x >= point.x || player.x + player.size >= point.x) &&
+						(player.y >= point.y || player.y + player.size >= point.y) &&
+						player.x <= point.x + point.size &&
+						player.y <= point.y + point.size
+					) {
+						this.#pickPoint(player, point);
+					}
+				}
 
-  #killPlayer(player) {
-    const spawnPoints = player.points;
+				//* touch other player tail detect
+				for (const player2 of this.players) {
+					if (player.id != player2.id) {
+						for (const tailPart of player2.tail) {
+							if (
+								(player.x >= tailPart.x ||
+									player.x + player.size >= tailPart.x) &&
+								(player.y >= tailPart.y ||
+									player.y + player.size >= tailPart.y) &&
+								player.x <= tailPart.x + player2.size &&
+								player.y <= tailPart.y + player2.size
+							) {
+								this.#killPlayer(player);
+							}
+						}
+					}
+				}
 
-    this.players = this.players.filter((el) => el.id != player.id);
-  }
+				player.size = this.#calculatePlayerSize(player);
+			}
+			this.#emitUpdate();
+		}, 5);
+	}
 
-  #pickPoint(player, point) {
-    this.points = this.points.filter((el) => el != point);
-    player.points++;
-    this.#generatePoint();
-    this.#emitUpdate();
-  }
+	#emitUpdate() {
+		this.io.emit('update', {
+			players: this.players,
+			points: this.points,
+		});
+	}
 
-  #generatePoints(amount) {
-    for (let x = 0; x <= amount; x++) {
-      this.#generatePoint();
-    }
-  }
+	#killPlayer(player) {
+		const spawnPoints = player.points;
 
-  #generatePoint() {
-    const position = this.#getRandomPosition();
-    const size = this.#getRandomSize();
-    this.points.push(
-      new Point(position.x, position.y, size, this.#getRandomPointColor())
-    );
-  }
+		this.players = this.players.filter((el) => el.id != player.id);
+	}
 
-  #getRandomPosition() {
-    const maxX = this.mapWidth;
-    const maxY = this.mapHeight;
-    return {
-      x: Math.floor(Math.random() * (0 - maxX) + maxX),
-      y: Math.floor(Math.random() * (0 - maxY) + maxY),
-    };
-  }
+	#pickPoint(player, point) {
+		this.points = this.points.filter((el) => el != point);
+		player.points++;
+		this.#generatePoint();
+		this.#emitUpdate();
+	}
 
-  #calculatePlayerSize(player) {
-    return (player.points < 10 ? 10 : player.points) * 1.1;
-  }
+	#generatePoints(amount) {
+		for (let x = 0; x <= amount; x++) {
+			this.#generatePoint();
+		}
+	}
 
-  #getRandomSize() {
-    const min = 10;
-    const max = 20;
+	#generatePoint() {
+		const position = this.#getRandomPosition();
+		const size = this.#getRandomSize();
+		this.points.push(
+			new Point(position.x, position.y, size, this.#getRandomPointColor())
+		);
+	}
 
-    return Math.floor(Math.random() * (min - max) + max);
-  }
+	#getRandomPosition() {
+		const maxX = this.config.mapWidth;
+		const maxY = this.config.mapHeight;
+		return {
+			x: Math.floor(Math.random() * (0 - maxX) + maxX),
+			y: Math.floor(Math.random() * (0 - maxY) + maxY),
+		};
+	}
 
-  // todo
-  #getRandomColor() {
-    const colors = ['#00e500', '#00cc00', '#00b200', '#009900', '#007f00'];
-    return colors[Math.floor(Math.random() * colors.length)];
-  }
+	#calculatePlayerSize(player) {
+		return (player.points < 10 ? 10 : player.points) * 1.1;
+	}
 
-  #getRandomPointColor() {
-    return `#${Math.floor(Math.random() * 16777215).toString(16)}`;
-  }
+	#getRandomSize() {
+		const min = 10;
+		const max = 20;
+
+		return Math.floor(Math.random() * (min - max) + max);
+	}
+
+	// todo
+	#getRandomColor() {
+		const colors = ['#00e500', '#00cc00', '#00b200', '#009900', '#007f00'];
+		return colors[Math.floor(Math.random() * colors.length)];
+	}
+
+	#getRandomPointColor() {
+		return `#${Math.floor(Math.random() * 16777215).toString(16)}`;
+	}
 }
 
 module.exports = GameServer;
