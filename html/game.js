@@ -1,177 +1,152 @@
 class Game {
-  constructor() {
-    this.canvas = document.querySelector('#canvas');
-    this.ctx = this.canvas.getContext('2d');
+	constructor() {
+		this.canvas = document.querySelector('#canvas');
+		this.ctx = this.canvas.getContext('2d');
 
-    this.socket = io('http://192.168.16.56:3000');
+		this.socket = io('');
 
-    this.fps = 300;
-    this.mouseX = 0;
-    this.mouseY = 0;
+		this.fps = 300;
 
-    this.players = [];
-    this.points = [];
+		this.players = [];
+		this.points = [];
 
-    this.player = {};
+		this.player = {};
 
-    this.canvas.width = 1920;
-    this.canvas.height = 1080;
-  }
+		this.canvas.width = 1920;
+		this.canvas.height = 1080;
+	}
 
-  async start(playerName) {
-    await this.#loadData();
-    this.#joinPlayer(playerName);
-    this.#updateUI();
-    this.#cameraFollow();
-    this.#render();
+	async start(playerName) {
+		await this.#loadData();
+		this.#joinPlayer(playerName);
+		this.#render();
 
-    this.socket.on('update', (data) => {
-      this.running = true;
-      this.players = data.players;
-      this.points = data.points;
-      this.player = data.players.find((el) => el.id == this.socket.id);
-    });
+		this.socket.on('update', (data) => {
+			this.running = true;
+			this.players = data.players;
+			this.points = data.points;
+			this.player = data.players.find((el) => el.id == this.socket.id);
+		});
 
-    document.addEventListener('keydown', (e) => {
-      if (e.keyCode == 32) {
-        this.socket.emit('player-speed', true);
-      }
-    });
+		document.addEventListener('keydown', (e) => {
+			if (e.keyCode == 32) {
+				this.socket.emit('player-speed', true);
+			}
+		});
 
-    document.addEventListener('keyup', (e) => {
-      if (e.keyCode == 32) {
-        this.socket.emit('player-speed', false);
-      }
-    });
+		document.addEventListener('keyup', (e) => {
+			if (e.keyCode == 32) {
+				this.socket.emit('player-speed', false);
+			}
+		});
 
-    this.canvas.addEventListener('mousemove', (e) => {
-      const rect = this.canvas.getBoundingClientRect();
-      this.mouseX = e.clientX - rect.left;
-      this.mouseY = e.clientY - rect.top;
+		this.canvas.addEventListener('mousemove', (e) => {
+			const rect = this.canvas.getBoundingClientRect();
+			this.player.mouseX = e.clientX - rect.left;
+			this.player.mouseY = e.clientY - rect.top;
 
-      this.socket.emit('change-dir', {
-        mouseX: this.mouseX,
-        mouseY: this.mouseY,
-      });
-    });
-  }
+			this.socket.emit('change-dir', {
+				mouseX: this.player.mouseX,
+				mouseY: this.player.mouseY,
+			});
+		});
+	}
 
-  #joinPlayer(name) {
-    this.socket.emit('player-join', { name });
-  }
+	#joinPlayer(name) {
+		this.socket.emit('player-join', { name });
+	}
 
-  #render() {
-    setInterval(() => {
-      this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
-      for (const point of this.points) {
-        this.ctx.fillStyle = point.color;
-        this.ctx.fillRect(point.x, point.y, point.size, point.size);
-      }
-      for (const player of this.players) {
-        this.ctx.fillStyle = player.color;
-        this.ctx.fillRect(player.x, player.y, player.size, player.size);
+	#render() {
+		requestAnimationFrame(() => this.#renderFrame());
+		requestAnimationFrame(() => this.#updateUI());
+		requestAnimationFrame(() => this.#cameraFollow());
+	}
 
-        for (const tailpart of player.tail) {
-          this.ctx.fillStyle = tailpart.color;
-          this.ctx.fillRect(tailpart.x, tailpart.y, player.size, player.size);
-        }
-      }
-    }, 1000 / this.fps);
-  }
+	#renderFrame() {
+		this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
+		for (const point of this.points) {
+			this.ctx.fillStyle = point.color;
+			this.ctx.fillRect(point.x, point.y, point.size, point.size);
+		}
+		for (const player of this.players) {
+			this.ctx.fillStyle = player.color;
+			this.ctx.fillRect(player.x, player.y, player.size, player.size);
 
-  #cameraFollow() {
-    window.requestAnimationFrame(() => {
-      const windowX = window.innerWidth;
-      const windowY = window.innerHeight;
+			for (const tailpart of player.tail) {
+				this.ctx.fillStyle = tailpart.color;
+				this.ctx.fillRect(tailpart.x, tailpart.y, player.size, player.size);
+			}
+		}
 
-      this.canvas.style.left = `${-(this.player.x - windowX / 2)}px`;
-      this.canvas.style.top = `${-(this.player.y - windowY / 2)}px`;
+		requestAnimationFrame(() => this.#renderFrame());
+	}
 
-      window.requestAnimationFrame(this.#cameraFollow());
-    });
-  }
+	#cameraFollow() {
+		const windowX = window.innerWidth;
+		const windowY = window.innerHeight;
 
-  #updateUI() {
-    const loading = document.querySelector('#loading');
-    const game = document.querySelector('#game');
-    const menu = document.querySelector('#menu');
-    const points = document.querySelector('#points-amount');
-    const name = document.querySelector('#player-name');
-    const leaderBoard = document.querySelector('#leaderboard');
+		this.canvas.style.left = `${-(this.player.x - windowX / 2)}px`;
+		this.canvas.style.top = `${-(this.player.y - windowY / 2)}px`;
 
-    const playerName = document.createElement('div');
-    game.appendChild(playerName);
-    window.requestAnimationFrame(function renameLater() {
-      //* update leaderBoard
-      let htmlString = ``;
-      for (const [index, player] of this.players
-        .sort((a, b) => b.points - a.points)
-        .entries()) {
-        const elements = leaderBoard.getElementsByTagName('*');
-        if (elements.length < 9) {
-          htmlString += `<div><b>${index + 1}.</b> ${player.name || 'Brak'}: ${
-            player.points
-          }</div>`;
-        }
-      }
-      leaderBoard.innerHTML = htmlString;
+		requestAnimationFrame(() => this.#cameraFollow());
+	}
 
-      if (this.player) {
-        points.innerHTML = this.player.points || 0;
-        name.innerHTML = this.player.name || 'Brak';
+	#updateUI() {
+		const loading = document.querySelector('#loading');
+		const game = document.querySelector('#game');
+		const menu = document.querySelector('#menu');
+		const points = document.querySelector('#points-amount');
+		const name = document.querySelector('#player-name');
+		const leaderBoard = document.querySelector('#leaderboard');
 
-        playerName.style.position = 'absolute';
-        playerName.style.left = `${this.player.x}px`;
-        playerName.style.top = `${this.player.y}px`;
-        playerName.innerHTML = this.player.name;
-      }
-      window.requestAnimationFrame(renameLater());
-    });
-    // setInterval(() => {
-    //   //* update leaderBoard
-    //   let htmlString = ``;
-    //   for (const [index, player] of this.players
-    //     .sort((a, b) => b.points - a.points)
-    //     .entries()) {
-    //     const elements = leaderBoard.getElementsByTagName('*');
-    //     if (elements.length < 9) {
-    //       htmlString += `<div><b>${index + 1}.</b> ${player.name || 'Brak'}: ${
-    //         player.points
-    //       }</div>`;
-    //     }
-    //   }
-    //   leaderBoard.innerHTML = htmlString;
+		//* update leaderBoard
+		let htmlString = ``;
+		for (const [index, player] of this.players
+			.sort((a, b) => b.points - a.points)
+			.entries()) {
+			const elements = leaderBoard.getElementsByTagName('*');
+			if (elements.length < 9) {
+				htmlString += `<div><b>${index + 1}.</b> ${player.name || 'Brak'}: ${
+					player.points
+				}</div>`;
+			}
+		}
+		leaderBoard.innerHTML = htmlString;
 
-    //   if (this.player) {
-    //     points.innerHTML = this.player.points || 0;
-    //     name.innerHTML = this.player.name || 'Brak';
+		if (this.player) {
+			points.innerHTML = this.player.points || 0;
+			name.innerHTML = this.player.name || 'Brak';
 
-    //     playerName.style.position = 'absolute';
-    //     playerName.style.left = `${this.player.x}px`;
-    //     playerName.style.top = `${this.player.y}px`;
-    //     playerName.innerHTML = this.player.name;
-    //   }
-    // }, 10);
+			const windowX = window.innerWidth;
+			const windowY = window.innerHeight;
 
-    loading.style.display = 'none';
-    menu.style.display = 'none';
-    leaderBoard.style.display = 'block';
-    game.style.display = 'block';
-  }
+			const playerName = document.querySelector('#player-name-floating');
+			playerName.style.left = `${-(this.player.x - windowX / 2)}px`;
+			playerName.style.top = `${-(this.player.y - windowY / 2)}px`;
+			playerName.innerHTML = this.player.name;
+		}
 
-  async #loadData() {
-    console.log('ladowanie..');
-    const req = await axios.get('http://192.168.16.56:3000/state');
-    if (req.status == 200) {
-      const { data } = await axios.get('http://192.168.16.56:3000/game-data');
-      this.players = data.players;
-      this.points = data.points;
-      this.canvas.width = data.width;
-      this.canvas.height = data.height;
-      console.log('zaladowano.');
-      return true;
-    } else {
-      return this.#loadData();
-    }
-  }
+		loading.style.display = 'none';
+		menu.style.display = 'none';
+		leaderBoard.style.display = 'block';
+		game.style.display = 'block';
+
+		requestAnimationFrame(() => this.#updateUI());
+	}
+
+	async #loadData() {
+		console.log('ladowanie..');
+		const req = await axios.get('/state');
+		if (req.status == 200) {
+			const { data } = await axios.get('/game-data');
+			this.players = data.players;
+			this.points = data.points;
+			this.canvas.width = data.width;
+			this.canvas.height = data.height;
+			console.log('zaladowano.');
+			return true;
+		} else {
+			return this.#loadData();
+		}
+	}
 }
