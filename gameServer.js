@@ -143,6 +143,11 @@ class GameServer {
 
 	#killPlayer(player) {
 		const spawnPoints = player.points;
+		const tail = player.tail.splice(0, spawnPoints);
+
+		for (const point of tail) {
+			this.#generatePoint(point.x, point.y);
+		}
 
 		this.players = this.players.filter((el) => el.id != player.id);
 	}
@@ -160,8 +165,8 @@ class GameServer {
 		}
 	}
 
-	#generatePoint() {
-		const position = this.#getRandomPosition();
+	#generatePoint(x, y) {
+		const position = x && y ? { x, y } : this.#getRandomPosition();
 		const size = this.#getRandomSize();
 		this.points.push(
 			new Point(position.x, position.y, size, this.#getRandomPointColor())
