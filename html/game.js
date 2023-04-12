@@ -1,5 +1,11 @@
 class Game {
 	constructor() {
+		this.loading = document.querySelector('#loading');
+		this.game = document.querySelector('#game');
+		this.menu = document.querySelector('#menu');
+		this.playerPoints = document.querySelector('#points-amount');
+		this.name = document.querySelector('#player-name');
+		this.leaderBoard = document.querySelector('#leaderboard');
 		this.canvas = document.querySelector('#canvas');
 		this.ctx = this.canvas.getContext('2d');
 
@@ -50,6 +56,11 @@ class Game {
 				mouseY: this.player.mouseY,
 			});
 		});
+
+		this.loading.style.display = 'none';
+		this.menu.style.display = 'none';
+		this.leaderBoard.style.display = 'block';
+		this.game.style.display = 'block';
 	}
 
 	#joinPlayer(name) {
@@ -92,30 +103,23 @@ class Game {
 	}
 
 	#updateUI() {
-		const loading = document.querySelector('#loading');
-		const game = document.querySelector('#game');
-		const menu = document.querySelector('#menu');
-		const points = document.querySelector('#points-amount');
-		const name = document.querySelector('#player-name');
-		const leaderBoard = document.querySelector('#leaderboard');
-
 		//* update leaderBoard
 		let htmlString = ``;
 		for (const [index, player] of this.players
 			.sort((a, b) => b.points - a.points)
 			.entries()) {
-			const elements = leaderBoard.getElementsByTagName('*');
+			const elements = this.leaderBoard.getElementsByTagName('*');
 			if (elements.length < 9) {
 				htmlString += `<div><b>${index + 1}.</b> ${player.name || 'Brak'}: ${
 					player.points
 				}</div>`;
 			}
 		}
-		leaderBoard.innerHTML = htmlString;
+		this.leaderBoard.innerHTML = htmlString;
 
 		if (this.player) {
-			points.innerHTML = this.player.points || 0;
-			name.innerHTML = this.player.name || 'Brak';
+			this.playerPoints.innerHTML = this.player.points || 0;
+			this.name.innerHTML = this.player.name || 'Brak';
 
 			const windowX = window.innerWidth;
 			const windowY = window.innerHeight;
@@ -125,11 +129,6 @@ class Game {
 			playerName.style.top = `${-(this.player.y - windowY / 2)}px`;
 			playerName.innerHTML = this.player.name;
 		}
-
-		loading.style.display = 'none';
-		menu.style.display = 'none';
-		leaderBoard.style.display = 'block';
-		game.style.display = 'block';
 
 		requestAnimationFrame(() => this.#updateUI());
 	}
