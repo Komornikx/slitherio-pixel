@@ -100,9 +100,10 @@ class Game {
 		const windowX = window.innerWidth;
 		const windowY = window.innerHeight;
 
-		this.canvas.style.left = `${-(this.player.x - windowX / 2)}px`;
-		this.canvas.style.top = `${-(this.player.y - windowY / 2)}px`;
-
+		if(this.player.x && this.player.y) {
+			this.canvas.style.left = `${-(this.player.x - windowX / 2)}px`;
+			this.canvas.style.top = `${-(this.player.y - windowY / 2)}px`;
+		}
 		requestAnimationFrame(() => this.#cameraFollow());
 	}
 
