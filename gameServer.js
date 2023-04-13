@@ -26,7 +26,7 @@ class GameServer {
 						socket.id,
 						position.x,
 						position.y,
-						data.name,
+						data.name.slice(0, 15),
 						this.#getRandomColor()
 					)
 				);
