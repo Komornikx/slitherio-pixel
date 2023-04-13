@@ -34,6 +34,10 @@ class Game {
 			this.player = data.players.find((el) => el.id == this.socket.id);
 		});
 
+		this.socket.on('ded', () => {
+			document.querySelector('#deathscreen').style.display = 'flex'
+		})
+
 		document.addEventListener('keydown', (e) => {
 			if (e.keyCode == 32) {
 				this.socket.emit('player-speed', true);
@@ -46,7 +50,7 @@ class Game {
 			}
 		});
 
-		this.canvas.addEventListener('mousemove', (e) => {
+		document.addEventListener('mousemove', (e) => {
 			const rect = this.canvas.getBoundingClientRect();
 			this.player.mouseX = e.clientX - rect.left;
 			this.player.mouseY = e.clientY - rect.top;

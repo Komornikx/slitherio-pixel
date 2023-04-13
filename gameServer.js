@@ -13,6 +13,12 @@ class GameServer {
 
 		this.io.on('connection', (socket) => {
 			socket.on('player-join', (data) => {
+
+				const playerExists = this.players.filter(el => el.id == socket.id)[0]
+				if(playerExists){
+					return
+				}
+
 				const position = this.#getRandomPosition();
 
 				this.players.push(
@@ -83,6 +89,20 @@ class GameServer {
 				player.x += moveX;
 				player.y += moveY;
 
+				if(player.x >= this.config.mapWidth){
+					player.x = 0;
+				}
+				if(player.x < 0){
+					player.x = this.config.mapWidth;
+				}
+
+				if(player.y >= this.config.mapHeight){
+					player.y = 0;
+				}
+				if(player.y < 0){
+					player.y = this.config.mapHeight;
+				}
+
 				player.mouseX += moveX;
 				player.mouseY += moveY;
 
@@ -148,7 +168,8 @@ class GameServer {
 		for (const point of tail) {
 			this.#generatePoint(point.x, point.y);
 		}
-
+		
+		this.io.to(player.id).emit('ded')
 		this.players = this.players.filter((el) => el.id != player.id);
 	}
 
@@ -183,7 +204,7 @@ class GameServer {
 	}
 
 	#calculatePlayerSize(player) {
-		return (player.points < 10 ? 10 : player.points) * 1.1;
+		return player.size < 49 ? (player.points < 10 ? 10 : player.points) * 1.05 : player.size;
 	}
 
 	#getRandomSize() {

@@ -85,3 +85,25 @@ body {
 #player-name-floating {
 	position: absolute;
 }
+
+#deathscreen {
+	display: none;
+	width: 100%;
+	height: 100%;
+	z-index: 10;
+	position: fixed;
+	color: green;
+}
+
+#deathscreen > div {
+	/* text-align: center; */
+	display: flex;
+	justify-content: center;
+	align-items: center;
+	flex-direction: column;
+	background-color: rgb(44, 44, 44);
+	border: 1px solid lime;
+	margin: auto;
+	width: 100px;
+	height: 100px;
+}
