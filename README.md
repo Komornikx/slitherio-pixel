@@ -1,5 +1,5 @@
 ## Setup
-To run this project, install it using npm:
+To run this app, install it using npm:
 ```
 npm install
 npm start
