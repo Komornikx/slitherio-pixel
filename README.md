@@ -1,3 +1,8 @@
+## Project info
+This project was made during free time in school, just for fun. </br>
+There should be some bugs in it. </br>
+Do with it whatever you want.  
+
 ## Setup
 To run this app, install it using npm:
 ```
