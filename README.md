@@ -1,6 +1,5 @@
 ## Project info
 This project was made during free time in school, just for fun. </br>
-There are some bugs in this app. </br>
 Do with it whatever you want.  
 
 ## Setup
